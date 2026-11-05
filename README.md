@@ -17,7 +17,7 @@ First slice: Portra 400, Ektar 100 and Velvia 100 on one paper; upload, switch s
 ## Credits and licences
 
 - Code: GPL-3.0 (see `LICENSE`), because it builds on spektrafilm, which is GPL-3.0.
-- Film profiles: CC BY-SA 4.0, from spektrafilm. Baked tables follow spektrafilm's LUT licence (commercial use and free sharing allowed, no resale); read in full before shipping tables.
+- Film profiles and baked tables: CC BY-SA 4.0 (spektrafilm `SPEKTRAFILM_LICENSE.txt`, preamble v1.1, 2026-05-28). Every table keeps Andrea Volpato named as author, the canonical repo link and the licence notice, and says if it was modified. Asked, not required: no paid LUT packs, no commercial AI training on the tables, no "spektrafilm" in product branding (factual reference is welcome).
 - Datasheet-derived look checks draw on [Redlamp](https://github.com/pdcgomes/redlamp) (MPL-2.0), as a reference only.
 
 ## Context

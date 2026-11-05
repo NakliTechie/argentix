@@ -1,3 +1,6 @@
+# Compare a baked 1lut .cube (sRGB in/out) with the per-pixel spektrafilm pipeline on one image.
+# Usage: python -I compare_lut.py <film> <print> <cube> <image.tif>   (needs the spektrafilm venv)
+# Findings: docs/2026-11-05-bake-findings.md
 import sys, time, numpy as np, colour
 from scipy.ndimage import map_coordinates
 from spektrafilm.utils.io import load_image_oiio

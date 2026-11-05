@@ -1,0 +1,5 @@
+.DS_Store
+/plan
+.artifacts/
+tmp/
+node_modules/

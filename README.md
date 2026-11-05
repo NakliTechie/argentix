@@ -14,6 +14,10 @@ Argentix bakes the slow physical film simulation of spektrafilm offline into 33Â
 
 First slice: Portra 400, Ektar 100 and Velvia 100 on one paper; upload, switch stock, grain on or off, download.
 
+## Status
+
+Tool tier, scaffolded 2026-11-05. First bake-and-compare check is done; see [docs/2026-11-05-bake-findings.md](docs/2026-11-05-bake-findings.md) for results, limits and next steps.
+
 ## Credits and licences
 
 - Code: GPL-3.0 (see `LICENSE`), because it builds on spektrafilm, which is GPL-3.0.

@@ -1,0 +1,442 @@
+[
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "base",
+"mean": 0.0012584820793182289,
+"p99": 0.007075075643607265,
+"max": 0.013172877048672982,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "print_exposure 0.5",
+"mean": 0.0019541013745336135,
+"p99": 0.011134672353454972,
+"max": 0.018692065893621657,
+"worst": "sonoma.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "print_exposure 2",
+"mean": 0.0010480224581646358,
+"p99": 0.008269799715393988,
+"max": 0.01805207163615738,
+"worst": "sonoma.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "ev -2",
+"mean": 0.0009090455212858589,
+"p99": 0.0068044789183093115,
+"max": 0.011160371547360243,
+"worst": "astronaut.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "ev -1",
+"mean": 0.0011240108453719722,
+"p99": 0.007020961414053117,
+"max": 0.011647976302596036,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "ev +1",
+"mean": 0.0013917860789247366,
+"p99": 0.007593952546246757,
+"max": 0.013052957319503178,
+"worst": "sonoma.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "ev +2",
+"mean": 0.0013512259888244923,
+"p99": 0.008403297676789698,
+"max": 0.012658788023797385,
+"worst": "rocket.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "ev -2 compensated",
+"mean": 0.002284351255705083,
+"p99": 0.01097203155574028,
+"max": 0.01844147934197321,
+"worst": "chelsea.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "ev +2 compensated",
+"mean": 0.001440999826907351,
+"p99": 0.008657773987639672,
+"max": 0.015226319997531268,
+"worst": "grace_hopper.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "y -20 offset",
+"mean": 0.003059197866977666,
+"p99": 0.047601895909730234,
+"max": 0.052759682136547636,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "y -20 first-order",
+"mean": 0.0017364424505066916,
+"p99": 0.009107943604430235,
+"max": 0.01319510088033149,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "y -10 offset",
+"mean": 0.0019206946267897639,
+"p99": 0.02207628506025272,
+"max": 0.027150339936933443,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "y -10 first-order",
+"mean": 0.0013793283565911038,
+"p99": 0.007820666271038779,
+"max": 0.012772055091164747,
+"worst": "sonoma.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "y +10 offset",
+"mean": 0.0017989832646879362,
+"p99": 0.020021375437113593,
+"max": 0.02412768194941728,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "y +10 first-order",
+"mean": 0.0013497736888346268,
+"p99": 0.008410132477867593,
+"max": 0.014229819659855591,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "y +20 offset",
+"mean": 0.0027542384394055853,
+"p99": 0.036506831843234444,
+"max": 0.039983757746578086,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "y +20 first-order",
+"mean": 0.0019462786795747427,
+"p99": 0.00948193690130228,
+"max": 0.017831835093645276,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "m -20 offset",
+"mean": 0.003107475733902196,
+"p99": 0.04401490423968246,
+"max": 0.04926588728443032,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "m -20 first-order",
+"mean": 0.0017377977054021726,
+"p99": 0.00866213009975808,
+"max": 0.013397392750786719,
+"worst": "chelsea.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "m -10 offset",
+"mean": 0.0018978927599090482,
+"p99": 0.022103210989574795,
+"max": 0.025893588773319376,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "m -10 first-order",
+"mean": 0.0013588791093881757,
+"p99": 0.00723274057380352,
+"max": 0.012134694445946503,
+"worst": "sonoma.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "m +10 offset",
+"mean": 0.002082063580721882,
+"p99": 0.02088049934442773,
+"max": 0.025919209173557667,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "m +10 first-order",
+"mean": 0.0012225572375997279,
+"p99": 0.007683439403415815,
+"max": 0.014010060969390725,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "m +20 offset",
+"mean": 0.0034244353910600277,
+"p99": 0.04068646427746218,
+"max": 0.04808857144010603,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_portra_400:kodak_portra_endura",
+"case": "m +20 first-order",
+"mean": 0.0015827502628811975,
+"p99": 0.008211598825017652,
+"max": 0.014829159352122284,
+"worst": "astronaut.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "base",
+"mean": 0.001514126592510714,
+"p99": 0.00932211653224363,
+"max": 0.013421862605869972,
+"worst": "grace_hopper.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "print_exposure 0.5",
+"mean": 0.0021070600178012466,
+"p99": 0.010335961315890263,
+"max": 0.01618936445601149,
+"worst": "sonoma.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "print_exposure 2",
+"mean": 0.0010645312464131172,
+"p99": 0.008876440687289433,
+"max": 0.015304305204294433,
+"worst": "sonoma.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "ev -2",
+"mean": 0.0010230008336290842,
+"p99": 0.007627514487598908,
+"max": 0.00969574364489098,
+"worst": "astronaut.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "ev -1",
+"mean": 0.001393023156733495,
+"p99": 0.007825162692716325,
+"max": 0.01377579062150655,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "ev +1",
+"mean": 0.0016507436086699416,
+"p99": 0.007893987695136884,
+"max": 0.01321317335337957,
+"worst": "grace_hopper.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "ev +2",
+"mean": 0.0015860126901300542,
+"p99": 0.010620364667988269,
+"max": 0.013759411883870531,
+"worst": "rocket.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "ev -2 compensated",
+"mean": 0.0023062971543236998,
+"p99": 0.011697152430707403,
+"max": 0.022043176120984664,
+"worst": "chelsea.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "ev +2 compensated",
+"mean": 0.001543751071154089,
+"p99": 0.0082968933224008,
+"max": 0.01575507648802857,
+"worst": "grace_hopper.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "y -20 offset",
+"mean": 0.003551869264385242,
+"p99": 0.0561112528639179,
+"max": 0.061197967411435295,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "y -20 first-order",
+"mean": 0.0019154308107169036,
+"p99": 0.011005855354055738,
+"max": 0.012723035550591955,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "y -10 offset",
+"mean": 0.0021749129894625407,
+"p99": 0.026065824822037675,
+"max": 0.030650178097864245,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "y -10 first-order",
+"mean": 0.0015446270937733736,
+"p99": 0.009229397759046076,
+"max": 0.014628723694310425,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "y +10 offset",
+"mean": 0.002124150719844207,
+"p99": 0.024346064742251174,
+"max": 0.028482004032510666,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "y +10 first-order",
+"mean": 0.0014915783775358476,
+"p99": 0.00984271416253496,
+"max": 0.01439735242597387,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "y +20 offset",
+"mean": 0.0031431615247850563,
+"p99": 0.04458581342612196,
+"max": 0.048548570383542045,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "y +20 first-order",
+"mean": 0.0019990776457436935,
+"p99": 0.011568227949610432,
+"max": 0.014449087813565825,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "m -20 offset",
+"mean": 0.0033134700427041564,
+"p99": 0.05270007130535048,
+"max": 0.05897018975252771,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "m -20 first-order",
+"mean": 0.0018057555196484326,
+"p99": 0.009109660608504544,
+"max": 0.01334431493477839,
+"worst": "sonoma.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "m -10 offset",
+"mean": 0.002184402870331788,
+"p99": 0.02666988157359218,
+"max": 0.03115488390585658,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "m -10 first-order",
+"mean": 0.0015233216628754733,
+"p99": 0.010352673657928746,
+"max": 0.013823107412332197,
+"worst": "sonoma.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "m +10 offset",
+"mean": 0.0023275285635343335,
+"p99": 0.024694622714485137,
+"max": 0.028708995654798175,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "m +10 first-order",
+"mean": 0.0014141272704672504,
+"p99": 0.009079146729455256,
+"max": 0.013879032692467042,
+"worst": "grass.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "m +20 offset",
+"mean": 0.003818708401423667,
+"p99": 0.0483360775648076,
+"max": 0.05555171217921029,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "kodak_ektar_100:kodak_portra_endura",
+"case": "m +20 first-order",
+"mean": 0.0017818200340705024,
+"p99": 0.009514954405930587,
+"max": 0.015199144754045962,
+"worst": "grass.png"
+},
+{
+"pair": "fujifilm_velvia_100:kodak_portra_endura",
+"case": "base",
+"mean": 0.00220317044736253,
+"p99": 0.010156890607479901,
+"max": 0.017489089081546394,
+"worst": "sat_ramp.png"
+},
+{
+"pair": "fujifilm_velvia_100:kodak_portra_endura",
+"case": "ev -2",
+"mean": 0.001652237540213213,
+"p99": 0.012427605504321787,
+"max": 0.015709268928622677,
+"worst": "sonoma.png"
+},
+{
+"pair": "fujifilm_velvia_100:kodak_portra_endura",
+"case": "ev -1",
+"mean": 0.0019502587049240745,
+"p99": 0.011929629330253627,
+"max": 0.016256457169382038,
+"worst": "sonoma.png"
+},
+{
+"pair": "fujifilm_velvia_100:kodak_portra_endura",
+"case": "ev +1",
+"mean": 0.0025135532740180643,
+"p99": 0.011400921097147576,
+"max": 0.017913570412037616,
+"worst": "coffee.png"
+},
+{
+"pair": "fujifilm_velvia_100:kodak_portra_endura",
+"case": "ev +2",
+"mean": 0.0025254921930895646,
+"p99": 0.010154493705926387,
+"max": 0.022513962959449962,
+"worst": "portrait_leaves.png"
+}
+]

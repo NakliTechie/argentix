@@ -3,3 +3,6 @@
 .artifacts/
 tmp/
 node_modules/
+__pycache__/
+.claude/
+.wrangler/

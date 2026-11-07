@@ -1,11 +1,11 @@
-# Bake one stock file per film for the browser: gzip of a JSON header line plus delta-coded uint16 tables.
-# Header carries the attribution CC BY-SA 4.0 requires, the wires, the exposure curve, grain and halation data.
-# Usage: python -I bake_tables.py <out_dir> <id:film:print> [...]   (needs the spektrafilm venv)
+# Bake the browser's film files: tables/film/<film>.bin.gz (exposure, density, grain, halation; slide films also scan)
+# and tables/print/<film>.<paper>.bin.gz (print tables), plus tables/catalog.json. Each file is gzip of a JSON header
+# line and delta-coded uint16 tables, and the header carries the attribution CC BY-SA 4.0 requires.
+# Usage: python -I bake_tables.py <out_dir> [film ...]   (needs the spektrafilm venv; no films means all of them)
 # Layout decision: docs/2026-11-08-layout-findings.md
-import gzip, json, os, sys, numpy as np
+import gzip, json, os, subprocess, sys, numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from inject_test import Chain, init_params, digest_params, SimulationPipeline, is_slide, N, pipeline
-from spektrafilm_lut_creator.color_spaces import decode_cctf
+from inject_test import Chain, init_params, digest_params, SimulationPipeline, is_slide, N
 
 NOTICE = dict(
     work='Film and paper tables baked from spektrafilm profiles',
@@ -15,6 +15,11 @@ NOTICE = dict(
 
 GRAIN_BANDS = 16
 GRAIN_EDGE = 2048  # long edge of the calibration frame; the page scales sigma by edge / GRAIN_EDGE
+EVS = [round(-2 + 0.5 * i, 2) for i in range(9)]
+
+def listing(kind):
+    tool = os.path.join(os.path.dirname(sys.executable), 'spektrafilm-lut')
+    return subprocess.run([tool, 'list', kind], capture_output=True, text=True, check=True).stdout.split()
 
 def pack(table):
     # per-channel range to uint16, then deltas along the fastest axis so gzip finds the smooth surface
@@ -24,24 +29,32 @@ def pack(table):
     d = q.copy(); d[:, :, 1:, :] = q[:, :, 1:, :] - q[:, :, :-1, :]
     return d.tobytes(), dict(lo=lo.tolist(), hi=(lo + span).tolist())
 
-def film_params(film, printp, grain):
+def write(path, head, chain, names):
+    blobs = []
+    head.update(notice=NOTICE, size=N, tables=list(names), ranges={})
+    for n in names:
+        b, r = pack(getattr(chain, n)); blobs.append(b); head['ranges'][n] = r
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with gzip.open(path, 'wb', compresslevel=9) as f:
+        f.write(json.dumps(head).encode() + b'\n' + b''.join(blobs))
+    return os.path.getsize(path)
+
+def film_params(film, printp):
     p = init_params(film_profile=film, print_profile=printp)
     p.io.scan_film = is_slide(film)
     p.io.input_color_space = 'sRGB'; p.io.output_color_space = 'sRGB'
     p.io.input_cctf_decoding = False; p.io.output_cctf_encoding = False
     p.camera.auto_exposure = False
     p.film_render.halation.active = False
-    p.film_render.grain.active = grain
     p.scanner.unsharp_mask = (0.0, 0.0)
     return digest_params(p)
 
-def grain_curve(film, printp, edge=GRAIN_EDGE):
+def grain_curve(film, printp):
     # flat grey bands through the real grain model: density noise per channel against mean density
-    w = edge // GRAIN_BANDS
+    w = GRAIN_EDGE // GRAIN_BANDS
     levels = np.geomspace(0.004, 4.0, GRAIN_BANDS)
     frame = np.repeat(np.repeat(levels, w)[None, :, None], 256, axis=0).repeat(3, axis=2).astype(np.float32)
-    pipe = SimulationPipeline(film_params(film, printp, True))
-    cmy = np.asarray(pipe.process(frame, collect='cmy_film'), float)
+    cmy = np.asarray(SimulationPipeline(film_params(film, printp)).process(frame, collect='cmy_film'), float)
     rows = []
     for i in range(GRAIN_BANDS):
         band = cmy[16:-16, i * w + 16:(i + 1) * w - 16]
@@ -58,31 +71,30 @@ def halation(film, printp):
     return {k: (list(v) if isinstance(v, tuple) else v) for k, v in ((k, getattr(h, k)) for k in keys)}
 
 def main():
-    out = sys.argv[1]; os.makedirs(out, exist_ok=True)
-    index = []
-    for arg in sys.argv[2:]:
-        sid, film, printp = arg.split(':')
-        ch = Chain(film, printp)
-        names = ('l1', 'l2', 'scan') if ch.slide else ('l1', 'l2', 'l3', 'l4', 'dy', 'dm')
-        blobs, ranges = [], {}
-        for n in names:
-            b, r = pack(getattr(ch, n)); blobs.append(b); ranges[n] = r
-        wires = dict(log_e_film=[ch.w.log_e_film.min, ch.w.log_e_film.max],
-                     cmy_film=dict(min=list(ch.w.cmy_film.d_min), max=list(ch.w.cmy_film.d_max)))
-        if not ch.slide:
-            wires['log_e_print'] = [ch.w.log_e_print.min, ch.w.log_e_print.max]
-        evs = [round(-2 + 0.25 * i, 2) for i in range(17)]
-        head = dict(notice=NOTICE, id=sid, film=film, paper=None if ch.slide else printp, slide=ch.slide, size=N,
-                    tables=list(names), ranges=ranges, wires=wires,
-                    print_compensation=None if ch.slide else dict(ev=evs, offset=[ch.ev_comp(e) if e else 0.0 for e in evs]),
-                    grain=dict(edge=GRAIN_EDGE, bands=grain_curve(film, printp), check=grain_curve(film, printp, 4096)),
-                    halation=halation(film, printp))
-        with gzip.open(f'{out}/{sid}.bin.gz', 'wb', compresslevel=9) as f:
-            f.write(json.dumps(head).encode() + b'\n' + b''.join(blobs))
-        size = os.path.getsize(f'{out}/{sid}.bin.gz')
-        print(sid, film, printp, f'{size / 1024:.0f} KB', flush=True)
-        index.append(dict(id=sid, film=film, paper=head['paper'], slide=ch.slide, bytes=size))
-    json.dump(index, open(f'{out}/index.json', 'w'), indent=1)
+    out, chosen = sys.argv[1], sys.argv[2:]
+    papers = listing('print')
+    catalog_path = f'{out}/catalog.json'
+    # a full bake starts clean, so films dropped upstream leave the catalog; a named bake updates it
+    films = {f['id']: f for f in json.load(open(catalog_path))['films']} if chosen and os.path.exists(catalog_path) else {}
+    for film in chosen or listing('film'):
+        info = init_params(film_profile=film).film.info
+        slide = info.type == 'positive'
+        default = info.target_print if info.target_print in papers else 'kodak_portra_endura'
+        base = Chain(film, default)
+        head = dict(id=film, slide=slide, grain=dict(edge=GRAIN_EDGE, bands=grain_curve(film, default)), halation=halation(film, default),
+                    wires=dict(log_e_film=[base.w.log_e_film.min, base.w.log_e_film.max],
+                               cmy_film=dict(min=list(base.w.cmy_film.d_min), max=list(base.w.cmy_film.d_max))))
+        size = write(f'{out}/film/{film}.bin.gz', head, base, ('l1', 'l2', 'scan') if slide else ('l1', 'l2'))
+        for paper in [] if slide else papers:
+            ch = base if paper == default else Chain(film, paper, base)
+            head = dict(film=film, paper=paper, wires=dict(log_e_print=[ch.w.log_e_print.min, ch.w.log_e_print.max]),
+                        print_compensation=dict(ev=EVS, offset=[ch.ev_comp(e) if e else 0.0 for e in EVS]))
+            size += write(f'{out}/print/{film}.{paper}.bin.gz', head, ch, ('l3', 'l4', 'dy', 'dm'))
+        films[film] = dict(id=film, name=info.name, group='Slide' if slide else 'Cinema negative' if info.use == 'cine' else 'Colour negative',
+                           slide=slide, paper=None if slide else default, illuminant=info.reference_illuminant)
+        print(film, default, f'{size / 1024 / 1024:.1f} MB', flush=True)
+        names = [dict(id=p, name=init_params(print_profile=p).print.info.name) for p in papers]
+        json.dump(dict(films=sorted(films.values(), key=lambda f: (f['group'], f['name'])), papers=names), open(catalog_path, 'w'), indent=1)
 
 if __name__ == '__main__':
     main()

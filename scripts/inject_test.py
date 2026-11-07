@@ -1,7 +1,7 @@
 # Can exposure, print exposure and Y/M filter sliders run on baked tables, or does each setting need a rebake?
 # Chains the four 4lut tables with offsets injected on the log-E wires and compares with the per-pixel
 # pipeline at the same settings. Also tests first-order filter tables (L3 plus dL3/dy, dL3/dm).
-# Usage: python -I inject_test.py <out.json> <film:print> [...] -- <image.png> [...]   (needs the spektrafilm venv)
+# Usage: python -I inject_test.py [--quick] <out.json> <film:print> [...] -- <image.png> [...]   (needs the spektrafilm venv)
 # Findings: docs/2026-11-08-layout-findings.md
 import json, sys, time, numpy as np
 from scipy.ndimage import map_coordinates
@@ -60,20 +60,27 @@ def bake(bld, pipe, spec, wires, inject, collect):
     return np.clip(out, wire.min, wire.max) if wire else out
 
 class Chain:
-    def __init__(self, film, printp):
+    def __init__(self, film, printp, base=None):
+        # base: a Chain for the same film, whose film tables and wires this one shares
         self.spec = spec_for(film, printp); self.film, self.printp = film, printp
         self.bld = BundleBuilder(self.spec)
         pipe = pipeline(film, printp)
         self.slide = is_slide(film)
-        w_film = self.bld._compute_log_e_wire(pipe, self.spec, tap='log_e_film')
-        # density range measured at both ends of the exposure slider, so +/-2 EV does not clip on the density wire
-        ends = [self.bld._compute_density_wire(pipeline(film, printp, ev=e), self.spec) for e in (-2.0, 2.0)]
-        dens = DensityWire(tuple(np.maximum(ends[0].d_max, ends[1].d_max)), tuple(np.minimum(ends[0].d_min, ends[1].d_min)))
+        if base:
+            w_film, dens = base.w.log_e_film, base.w.cmy_film
+            self.l1, self.l2 = base.l1, base.l2
+        else:
+            w = self.bld._compute_log_e_wire(pipe, self.spec, tap='log_e_film')
+            w_film = LogEWire(max(w.min, FILM_FLOOR) - HEADROOM, w.max + HEADROOM)
+            # density range measured at both ends of the exposure slider, so +/-2 EV does not clip on the density wire
+            ends = [self.bld._compute_density_wire(pipeline(film, printp, ev=e), self.spec) for e in (-2.0, 2.0)]
+            dens = DensityWire(tuple(np.maximum(ends[0].d_max, ends[1].d_max)), tuple(np.minimum(ends[0].d_min, ends[1].d_min)))
         w_print = None if self.slide else self.bld._compute_log_e_wire(pipe, self.spec, tap='log_e_print')
-        self.w = BoundaryWires(log_e_film=LogEWire(max(w_film.min, FILM_FLOOR) - HEADROOM, w_film.max + HEADROOM), cmy_film=dens,
+        self.w = BoundaryWires(log_e_film=w_film, cmy_film=dens,
                                log_e_print=None if self.slide else LogEWire(w_print.min - HEADROOM, w_print.max + HEADROOM))
         b = lambda a, c, p=pipe: bake(self.bld, p, self.spec, self.w, a, c)
-        self.l1 = b('rgb_in', 'log_e_film'); self.l2 = b('log_e_film', 'cmy_film')
+        if not base:
+            self.l1 = b('rgb_in', 'log_e_film'); self.l2 = b('log_e_film', 'cmy_film')
         if self.slide:
             self.scan = np.clip(encode_cctf(b('cmy_film', 'rgb_out'), 'sRGB'), 0, 1)
             return
@@ -134,7 +141,12 @@ for ax in 'ym':
         CASES.append((f'{ax} {v:+.0f} offset', {ax: v}, {ax: v, 'filt': 'offset'}))
         CASES.append((f'{ax} {v:+.0f} first-order', {ax: v}, {ax: v, 'filt': 'table'}))
 
+QUICK = ('base', 'print_exposure 0.5', 'print_exposure 2', 'ev -2', 'ev +2', 'ev -2 compensated', 'ev +2 compensated',
+         'y +20 first-order', 'm -20 first-order')
+
 def main():
+    quick = '--quick' in sys.argv
+    if quick: sys.argv.remove('--quick')
     split = sys.argv.index('--')
     out, pairs, images = sys.argv[1], sys.argv[2:split], sys.argv[split + 1:]
     imgs = {p.rsplit('/', 1)[-1]: load(p) for p in images}
@@ -143,6 +155,8 @@ def main():
         film, printp = pair.split(':')
         t = time.time(); ch = Chain(film, printp); print(pair, f'baked in {time.time() - t:.1f}s', flush=True)
         for name, ref_kw, run_kw in CASES:
+            if quick and name not in QUICK:
+                continue
             if ch.slide and not (name == 'base' or (name.startswith('ev') and 'compensated' not in name)):
                 continue
             if run_kw is None:

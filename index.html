@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Argentix</title>
-<meta name="description" content="A browser film lab. See a photo as Portra, Ektar or Velvia would have rendered it. Nothing leaves your tab.">
+<meta name="description" content="A browser film lab. See a photo on 20 film stocks and 8 print papers. Nothing leaves your tab.">
 <meta property="og:title" content="Argentix">
-<meta property="og:description" content="A browser film lab. See a photo as Portra, Ektar or Velvia would have rendered it. Nothing leaves your tab.">
+<meta property="og:description" content="A browser film lab. See a photo on 20 film stocks and 8 print papers. Nothing leaves your tab.">
 <meta property="og:image" content="https://argentix.naklitechie.com/social.png">
 <meta property="og:url" content="https://argentix.naklitechie.com/">
 <meta name="twitter:card" content="summary_large_image">
@@ -24,7 +24,12 @@
     <h1>Argentix</h1>
     <p class="lede">Choose a film. Your photo stays in this tab.</p>
 
-    <div id="stocks" class="stocks" role="group" aria-label="Film stock"></div>
+    <label class="field" for="film">Film</label>
+    <select id="film"></select>
+    <div id="paper-row">
+      <label class="field" for="paper">Paper</label>
+      <select id="paper"></select>
+    </div>
     <p id="note" class="quiet"></p>
 
     <label class="row" for="ev"><span>Film exposure</span><output id="ev-value"></output></label>

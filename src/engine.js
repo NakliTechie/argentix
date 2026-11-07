@@ -103,8 +103,9 @@ void main() {
 
 const SCATTER_TAIL_FIT = [[0.1633, 0.5360], [0.6496, 1.5236], [0.1870, 2.7684]]; // spektrafilm's three-Gaussian exponential surrogate
 const FILM_WIDTH_UM = 35000;
+const MAX_PRINTS = 16;
 
-export async function readStock(url) {
+export async function readTables(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Could not fetch ${url}: ${res.status}`);
   const stream = res.body.pipeThrough(new DecompressionStream('gzip'));
@@ -172,7 +173,8 @@ export class Engine {
     this.programs = { expose: this.program(EXPOSE), blur: this.program(BLUR), mix: this.program(MIX), develop: this.program(DEVELOP) };
     this.vao = gl.createVertexArray();
     this.targets = [];
-    this.stocks = new Map();
+    this.films = new Map();
+    this.prints = new Map();
     gl.bindVertexArray(this.vao);
   }
 
@@ -209,11 +211,25 @@ export class Engine {
     return t;
   }
 
-  addStock(id, { head, tables }) {
-    const { gl } = this, gpu = {};
-    for (const name of head.tables) gpu[name] = this.table(tables[name], head.size);
+  upload(head, tables) {
+    return Object.fromEntries(head.tables.map(name => [name, this.table(tables[name], head.size)]));
+  }
+
+  addFilm(id, { head, tables }) {
+    const { gl } = this;
     const lut = this.plain(gl.RGBA32F, gl.RGBA, gl.FLOAT, 256, 1, grainLut(head));
-    this.stocks.set(id, { head, gpu, lut, kernel: grainKernel(head) });
+    this.films.set(id, { head, gpu: this.upload(head, tables), lut, kernel: grainKernel(head) });
+  }
+
+  // keep names the pair on screen, which must survive eviction
+  addPrint(key, { head, tables }, keep) {
+    const { gl } = this;
+    this.prints.set(key, { head, gpu: this.upload(head, tables) });
+    if (this.prints.size > MAX_PRINTS) { // 2.3 MB of GPU memory each, so hold a working set
+      const oldest = [...this.prints.keys()].find(k => k !== keep && k !== key);
+      Object.values(this.prints.get(oldest).gpu).forEach(t => gl.deleteTexture(t));
+      this.prints.delete(oldest);
+    }
   }
 
   setSize(w, h) {
@@ -319,23 +335,23 @@ export class Engine {
     this.exposedKey = key;
   }
 
-  render(id, s) {
-    const { gl } = this, stock = this.stocks.get(id), { head, gpu } = stock, p = this.programs.develop;
+  render(filmId, printKey, s) {
+    const { gl } = this, stock = this.films.get(filmId), { head, gpu } = stock, p = this.programs.develop;
     this.expose(stock, s.halation);
-    const slide = head.slide;
-    const tex = { uExposed: this.exposed.tex, uGrainLut: stock.lut, uL2: gpu.l2, uL3: slide ? gpu.scan : gpu.l3,
-                  uL4: slide ? gpu.scan : gpu.l4, uDy: slide ? gpu.scan : gpu.dy, uDm: slide ? gpu.scan : gpu.dm };
+    const slide = head.slide, print = slide ? null : this.prints.get(printKey), pg = print?.gpu;
+    const tex = { uExposed: this.exposed.tex, uGrainLut: stock.lut, uL2: gpu.l2, uL3: slide ? gpu.scan : pg.l3,
+                  uL4: slide ? gpu.scan : pg.l4, uDy: slide ? gpu.scan : pg.dy, uDm: slide ? gpu.scan : pg.dm };
     this.bind(p, tex, { uL2: true, uL3: true, uL4: true, uDy: true, uDm: true });
     const u = n => gl.getUniformLocation(p, n), { min, max } = head.wires.cmy_film;
     gl.uniform1f(u('uLast'), head.size - 1);
     gl.uniform1f(u('uEvLog'), s.ev * Math.log10(2));
-    gl.uniform1f(u('uPrintLog'), s.print * Math.log10(2) + compensation(head, s.ev));
+    gl.uniform1f(u('uPrintLog'), s.print * Math.log10(2) + (print ? compensation(print.head, s.ev) : 0));
     gl.uniform1f(u('uY'), s.y); gl.uniform1f(u('uM'), s.m);
     gl.uniform1f(u('uGrainScale'), s.grain ? Math.max(this.w, this.h) / head.grain.edge : 0);
     gl.uniform1i(u('uSlide'), slide ? 1 : 0);
     gl.uniform1ui(u('uSeed'), 1009);
     gl.uniform2fv(u('uFilmWire'), head.wires.log_e_film);
-    gl.uniform2fv(u('uPrintWire'), head.wires.log_e_print || [0, 1]);
+    gl.uniform2fv(u('uPrintWire'), print ? print.head.wires.log_e_print : [0, 1]);
     gl.uniform3fv(u('uDensMin'), min); gl.uniform3fv(u('uDensMax'), max);
     gl.uniform3fv(u('uKernel'), stock.kernel);
     this.draw(null);
@@ -345,7 +361,6 @@ export class Engine {
 // the printer corrects for camera exposure, as spektrafilm does by default, so EV moves the film and not the brightness
 function compensation(head, ev) {
   const c = head.print_compensation;
-  if (!c) return 0;
   const x = Math.min(c.ev.length - 1.001, Math.max(0, (ev - c.ev[0]) / (c.ev[1] - c.ev[0]))), i = Math.floor(x);
   return c.offset[i] + (x - i) * (c.offset[i + 1] - c.offset[i]);
 }

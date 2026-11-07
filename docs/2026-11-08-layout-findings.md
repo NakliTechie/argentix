@@ -36,7 +36,18 @@ Chrome through the agent tools, `scripts/compare_browser.py` and `scripts/compar
 ## Results: the live site
 Headless Chrome against `https://argentix.naklitechie.com/` with the cache disabled, from this Mac: first render 2,166 ms, no console errors, so the content security policy allows every path used. All three stocks loaded, a photo loaded through `load_photo`, and `render_photo` returned a JPEG. `README.md`, `scripts/`, `plan/`, `wrangler.jsonc` and `.git/` return 404.
 
+A second Codex review of the film and paper change raised 5 issues. I fixed 4, including one where a failed switch could evict the tables on screen. The fifth, a rebake interrupted between film and pair files, stays open because bakes are run by hand and reviewed in git before they ship.
+
 A cold Codex review found 13 issues in the page code. I fixed 13 of them: races between photo, stock and export work (one serial queue), start-up failures, unchecked decoding, GPU allocation failure (retry at a smaller size, 48 MP cap), bitmap release, table length check, command history bound and the GPL notice. Only the ordering fixes were tested; the allocation retry never ran, because this Mac did not run out of GPU memory.
+
+## All stocks and papers
+20 films and 8 papers: 16 negatives × 8 papers = 128 pairs, plus 4 slide films. Tables split into `tables/film/` (per film) and `tables/print/` (per pair), 54 MB in all. Each negative starts on the paper its profile names as `target_print`. A switch downloads about 370 KB of print tables.
+
+`inject_test.py --quick` on all 132 combinations, 4 images (including the saturated ramp), 9 settings each, 1,164 checks (`docs/all-pairs-results.json`): median mean difference 0.0015, worst mean 0.0038 (Film exposure -2 with printer correction), worst pixel 0.0364 (Portra 800 Push 2). No check exceeded 0.05.
+
+A contact sheet of all 128 pairs and a luminance check (correlation with the source at least 0.85, mean level in range) flagged nothing inverted or out of range. Tungsten stocks do not render blue on daylight photos, because each pair's neutral print filters balance the film.
+
+The page walked all 132 combinations with no errors, and 6 sampled combinations matched the pipeline at 0.0015 to 0.0021 mean, max 0.0169. Grain and halation were compared for Portra 400 and Velvia 100 only.
 
 ## Limits
 - The pipeline's grain step also softens film density by 0.65 pixels. The page adds noise only, so a grainy render is slightly sharper than the pipeline's.

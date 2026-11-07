@@ -1,24 +1,23 @@
 // One manifest, two doors: the UI dispatches these commands, and an agent calls the same entries.
-export const STOCKS = [
-  { id: 'portra400', name: 'Portra 400', note: 'Colour negative on Portra Endura paper' },
-  { id: 'ektar100', name: 'Ektar 100', note: 'Colour negative on Portra Endura paper' },
-  { id: 'velvia100', name: 'Velvia 100', note: 'Slide film, viewed directly' },
-];
-
 export const DEFAULTS = { ev: 0, print: 0, y: 0, m: 0, grain: true, halation: true };
 
 const range = (min, max, description) => ({ type: 'number', minimum: min, maximum: max, description });
 
-export function createCommands(app) {
+export function createCommands(app, catalog) {
   const history = [];
   const manifest = [
     { name: 'get_state', description: 'Read the current stock, settings, photo size and credit line.',
       inputSchema: { type: 'object', properties: {} }, handler: () => app.snapshot() },
-    { name: 'list_stocks', description: 'List the film stocks and how each is finished.',
-      inputSchema: { type: 'object', properties: {} }, handler: () => STOCKS },
+    { name: 'list_stocks', description: 'List the film stocks, with each one\'s group and default paper.',
+      inputSchema: { type: 'object', properties: {} }, handler: () => catalog.films },
+    { name: 'list_papers', description: 'List the print papers.',
+      inputSchema: { type: 'object', properties: {} }, handler: () => catalog.papers },
     { name: 'set_stock', description: 'Switch film stock.',
-      inputSchema: { type: 'object', properties: { id: { enum: STOCKS.map(s => s.id) } }, required: ['id'] },
+      inputSchema: { type: 'object', properties: { id: { enum: catalog.films.map(s => s.id) } }, required: ['id'] },
       handler: ({ id }) => app.setStock(id) },
+    { name: 'set_paper', description: 'Switch print paper. Has no effect on slide film.',
+      inputSchema: { type: 'object', properties: { id: { enum: catalog.papers.map(p => p.id) } }, required: ['id'] },
+      handler: ({ id }) => app.setPaper(id) },
     { name: 'set_exposure', description: 'Over- or underexpose the film in stops. The printer corrects brightness, so this changes contrast and colour.',
       inputSchema: { type: 'object', properties: { ev: range(-2, 2, 'Stops') }, required: ['ev'] },
       handler: ({ ev }) => app.update({ ev }) },

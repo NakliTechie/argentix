@@ -1,6 +1,6 @@
 <h1 align="center">Argentix</h1>
 
-<p align="center"><strong>A browser film lab: drop in a photo and see it as Portra 400, Ektar 100 or Velvia 100 would have rendered it.</strong></p>
+<p align="center"><strong>A browser film lab: drop in a photo and see it on 20 film stocks and 8 print papers.</strong></p>
 
 <p align="center">One static page. No account, no upload, no server.</p>
 
@@ -23,17 +23,19 @@ Phone film filters are colour curves named after film. Your Portra filter has no
 
 spektrafilm simulates the real chain from light to dye, but it takes about a second per small image and needs Python. Argentix bakes that simulation into lookup tables offline, then runs the chain on your GPU, so every slider responds at once and no photo goes anywhere.
 
-Scope today: three films, one paper, sRGB in and out. Adjacency effects such as coupler diffusion are not modelled.
+Scope today: 20 colour films, 8 papers, sRGB in and out. There are no black and white stocks, because spektrafilm has no profiles for them. Adjacency effects such as coupler diffusion are not modelled.
 
 ## Results
 
 ![Bar chart of mean difference from the full simulation for each slider, all below one 8-bit level](docs/results.png)
 
-Mean difference from the full simulation stays under 1 of 255 levels at every slider setting, across 12 test images and 3 films. Reproduce with `scripts/inject_test.py`; the data is in [docs/slider-results.json](docs/slider-results.json).
+The chart shows 3 films across 12 test images. A wider check of all 132 film and paper combinations gives a worst mean difference of 0.97 of 255 levels ([docs/all-pairs-results.json](docs/all-pairs-results.json)). Reproduce with `scripts/inject_test.py`; the data is in [docs/slider-results.json](docs/slider-results.json).
 
 ## What the controls do
 
-**Film exposure** over- or underexposes the film, and the printer corrects brightness, as a lab would. You see contrast and colour change. **Print exposure** and the **yellow and magenta filters** are the enlarger's controls. Velvia is slide film, viewed directly, so it has no print controls.
+**Film** and **paper** choose the stock: 11 colour negatives, 5 cinema negatives and 4 slide films, each starting on the paper its profile names. Your paper choice then stays as you switch films.
+
+**Film exposure** over- or underexposes the film, and the printer corrects brightness, as a lab would. You see contrast and colour change. **Print exposure** and the **yellow and magenta filters** are the enlarger's controls. Slide films are viewed directly, so they have no paper or print controls.
 
 **Grain** is added to film density before printing, so the print's contrast shapes it as it does in a darkroom. **Halation** is the glow around bright areas. Both scale with the photo's size on a 35 mm frame.
 
@@ -44,7 +46,9 @@ Every control is also a tool, called through `navigator.modelContext` where the 
 ```text
 get_state             read the stock, settings and credit line
 list_stocks           list the films
+list_papers           list the papers
 set_stock             switch film
+set_paper             switch paper
 set_exposure          film exposure, -2 to 2 stops
 set_print_exposure    print exposure, -1 to 1 stop
 set_filters           yellow and magenta, -20 to 20 CC

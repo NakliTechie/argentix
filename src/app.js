@@ -1,14 +1,15 @@
-import { Engine, readStock } from './engine.js';
-import { STOCKS, DEFAULTS, createCommands } from './commands.js';
+import { Engine, readTables } from './engine.js';
+import { DEFAULTS, createCommands } from './commands.js';
 
 const PREVIEW_EDGE = 1600;
 const MAX_PIXELS = 48e6; // four half-float targets at this size take 1.5 GB
 const $ = id => document.getElementById(id);
 const status = text => { $('status').textContent = text; };
 
-const state = { stock: STOCKS[0].id, ...DEFAULTS };
-const pending = {};
-let engine, photo, photoName = 'sample', queued = false, exporting = false, tail = Promise.resolve();
+const FIRST_FILM = 'kodak_portra_400';
+const GROUPS = ['Colour negative', 'Cinema negative', 'Slide'];
+const state = { stock: FIRST_FILM, paper: null, ...DEFAULTS };
+let catalog, paperChosen = false, engine, photo, photoName = 'sample', queued = false, exporting = false, tail = Promise.resolve();
 
 // photo, stock and export work runs one job at a time, so a slow job cannot land after a newer one
 function serial(job) {
@@ -17,18 +18,30 @@ function serial(job) {
   return result;
 }
 
-function fetchStock(id) {
-  if (engine.stocks.has(id)) return Promise.resolve();
-  pending[id] ??= readStock(`tables/${id}.bin.gz`).then(s => engine.addStock(id, s)).finally(() => { delete pending[id]; });
-  return pending[id];
+const filmInfo = id => catalog.films.find(f => f.id === id);
+const printKey = s => `${s.stock}.${s.paper}`;
+
+// a film's own tables, plus the print tables for this paper unless it is a slide. Nothing is
+// stored until both reads succeed, so a failed switch leaves the current tables in place.
+async function fetchTables(s) {
+  const key = printKey(s), needFilm = !engine.films.has(s.stock);
+  const needPrint = !filmInfo(s.stock).slide && !engine.prints.has(key);
+  const [film, print] = await Promise.all([
+    needFilm && readTables(`tables/film/${s.stock}.bin.gz`),
+    needPrint && readTables(`tables/print/${key}.bin.gz`),
+  ]);
+  if (film) engine.addFilm(s.stock, film);
+  if (print) engine.addPrint(key, print, printKey(state));
 }
+
+const tablesReady = s => engine.films.has(s.stock) && (filmInfo(s.stock).slide || engine.prints.has(printKey(s)));
 
 function draw() {
   if (queued) return;
   queued = true;
   requestAnimationFrame(() => {
     queued = false;
-    if (photo && !exporting && engine.stocks.has(state.stock)) engine.render(state.stock, state);
+    if (photo && !exporting && tablesReady(state)) engine.render(state.stock, printKey(state), state);
   });
 }
 
@@ -62,7 +75,7 @@ async function fullBlob(type = 'image/jpeg') {
       const [w, h] = fit(full.width, full.height, edge);
       try {
         await upload(full, w, h);
-        engine.render(job.stock, job);
+        engine.render(job.stock, printKey(job), job);
         const out = await new Promise(r => engine.canvas.toBlob(r, type, 0.95));
         if (!out) throw new Error('The browser could not encode the image.');
         return { blob: out, stock: job.stock, w, h, reduced: w !== full.width };
@@ -79,9 +92,10 @@ async function fullBlob(type = 'image/jpeg') {
 }
 
 function syncControls() {
-  const slide = STOCKS.find(s => s.id === state.stock).id === 'velvia100';
-  for (const b of document.querySelectorAll('[data-stock]')) b.setAttribute('aria-pressed', b.dataset.stock === state.stock);
-  $('note').textContent = STOCKS.find(s => s.id === state.stock).note;
+  const film = filmInfo(state.stock), slide = film.slide;
+  $('film').value = state.stock; $('paper').value = state.paper;
+  $('note').textContent = slide ? 'Slide film, viewed directly' : film.illuminant.startsWith('D') ? '' : 'Balanced for tungsten light';
+  $('paper-row').hidden = slide;
   for (const [id, key, unit] of [['ev', 'ev', ' stops'], ['print', 'print', ' stops'], ['y', 'y', ''], ['m', 'm', '']]) {
     $(id).value = state[key];
     const v = Number(state[key]);
@@ -91,14 +105,24 @@ function syncControls() {
   $('print-controls').hidden = slide;
 }
 
+async function choose(next) {
+  status('Loading film data');
+  await fetchTables(next);
+  Object.assign(state, next);
+  status('');
+  syncControls(); draw();
+}
+
 const app = {
   snapshot: () => ({ ...state, photo: photoName, credit: $('credit').textContent.trim() }),
   setStock: id => serial(async () => {
-    status('Loading film data');
-    await fetchStock(id);
-    state.stock = id;
-    status('');
-    syncControls(); draw();
+    const film = filmInfo(id);
+    await choose({ stock: id, paper: paperChosen ? state.paper : film.paper ?? state.paper });
+    return app.snapshot();
+  }),
+  setPaper: id => serial(async () => {
+    await choose({ stock: state.stock, paper: id });
+    paperChosen = true;
     return app.snapshot();
   }),
   update(patch) {
@@ -148,15 +172,28 @@ async function start() {
     status(`${e.message} Argentix needs WebGL2 with float textures.`);
     return;
   }
-  const dispatch = createCommands(app);
-  const run = (name, args) => dispatch(name, args).catch(e => status(e.message));
-
-  for (const s of STOCKS) {
-    const b = document.createElement('button');
-    b.type = 'button'; b.dataset.stock = s.id; b.textContent = s.name;
-    b.addEventListener('click', () => run('set_stock', { id: s.id }));
-    $('stocks').append(b);
+  try {
+    const res = await fetch('tables/catalog.json');
+    if (!res.ok) throw new Error(`catalog ${res.status}`);
+    catalog = await res.json();
+  } catch (e) {
+    status(`Argentix could not start: ${e.message} Reload to try again.`);
+    return;
   }
+  if (!filmInfo(state.stock)) state.stock = catalog.films[0].id;
+  state.paper = filmInfo(state.stock).paper ?? catalog.papers[0].id;
+  const dispatch = createCommands(app, catalog);
+  const run = (name, args) => dispatch(name, args).catch(e => { status(e.message); syncControls(); });
+
+  for (const group of GROUPS) {
+    const g = document.createElement('optgroup');
+    g.label = group;
+    for (const f of catalog.films.filter(f => f.group === group)) g.append(new Option(f.name, f.id));
+    $('film').append(g);
+  }
+  for (const p of catalog.papers) $('paper').append(new Option(p.name.replace('Kodak Professional', 'Kodak'), p.id));
+  $('film').addEventListener('change', e => run('set_stock', { id: e.target.value }));
+  $('paper').addEventListener('change', e => run('set_paper', { id: e.target.value }));
   $('ev').addEventListener('input', e => run('set_exposure', { ev: +e.target.value }));
   $('print').addEventListener('input', e => run('set_print_exposure', { stops: +e.target.value }));
   $('y').addEventListener('input', e => run('set_filters', { y: +e.target.value }));
@@ -179,14 +216,13 @@ async function start() {
   // first in the queue, so a photo chosen during start-up lands after the sample
   await serial(async () => {
     status('Loading film data');
-    const [sample] = await Promise.all([fetch('assets/sample.png').then(r => r.blob()), fetchStock(state.stock)]);
+    const [sample] = await Promise.all([fetch('assets/sample.png').then(r => r.blob()), fetchTables(state)]);
     await showPreview(sample);
     photo = sample;
     status('');
     document.documentElement.dataset.ready = 'true';
     performance.mark('first-render');
   }).catch(e => status(`Argentix could not start: ${e.message} Reload to try again.`));
-  for (const s of STOCKS) fetchStock(s.id).catch(() => {});
 }
 
 start();

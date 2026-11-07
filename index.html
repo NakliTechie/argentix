@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Argentix</title>
+<meta name="description" content="A browser film lab. See a photo as Portra, Ektar or Velvia would have rendered it. Nothing leaves your tab.">
+<meta property="og:title" content="Argentix">
+<meta property="og:description" content="A browser film lab. See a photo as Portra, Ektar or Velvia would have rendered it. Nothing leaves your tab.">
+<meta property="og:image" content="https://argentix.naklitechie.com/social.png">
+<meta property="og:url" content="https://argentix.naklitechie.com/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://argentix.naklitechie.com/social.png">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="src/style.css">
+<script type="module" src="src/app.js"></script>
+</head>
+<body>
+<main>
+  <section class="stage" aria-label="Photo">
+    <canvas id="view" aria-label="The photo as rendered on the chosen film"></canvas>
+  </section>
+  <aside class="rail">
+    <h1>Argentix</h1>
+    <p class="lede">Choose a film. Your photo stays in this tab.</p>
+
+    <div id="stocks" class="stocks" role="group" aria-label="Film stock"></div>
+    <p id="note" class="quiet"></p>
+
+    <label class="row" for="ev"><span>Film exposure</span><output id="ev-value"></output></label>
+    <input id="ev" type="range" min="-2" max="2" step="0.25">
+
+    <div id="print-controls">
+      <label class="row" for="print"><span>Print exposure</span><output id="print-value"></output></label>
+      <input id="print" type="range" min="-1" max="1" step="0.05">
+      <label class="row" for="y"><span>Yellow filter</span><output id="y-value"></output></label>
+      <input id="y" type="range" min="-20" max="20" step="1">
+      <label class="row" for="m"><span>Magenta filter</span><output id="m-value"></output></label>
+      <input id="m" type="range" min="-20" max="20" step="1">
+    </div>
+
+    <label class="check"><input id="grain" type="checkbox"> Grain</label>
+    <label class="check"><input id="halation" type="checkbox"> Halation</label>
+
+    <div class="actions">
+      <label class="button" for="file">Choose photo</label>
+      <input id="file" class="hidden" type="file" accept="image/*">
+      <button id="download" class="button primary" type="button">Download</button>
+      <button id="reset" class="link" type="button">Reset</button>
+    </div>
+    <p class="quiet"><span id="size"></span> <span id="status" role="status" aria-live="polite"></span></p>
+
+    <footer>
+      <p id="credit">Film modeling powered by <a href="https://github.com/andreavolpato/spektrafilm" rel="noopener">spektrafilm</a> by Andrea Volpato.</p>
+      <details>
+        <summary>Licences</summary>
+        <p>Film tables are baked from spektrafilm profiles by Andrea Volpato, under <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>. Argentix modified them: it baked them to 33-point tables and re-encoded them. Each table file carries this notice.</p>
+        <p>Argentix code is <a href="LICENSE">GPL-3.0</a>. Sample photo by Rachel Michetti, CC0.</p>
+      </details>
+    </footer>
+  </aside>
+</main>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  // argentix.naklitechie.com: assets-only Worker, deployed by Workers Builds on push to main.
+  // account_id pinned on purpose: this machine has more than one Cloudflare account.
+  "name": "argentix",
+  "account_id": "62231b040ed00c96cdcf3a4541eab958",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "argentix.naklitechie.com", "custom_domain": true }],
+  "assets": { "directory": ".", "html_handling": "auto-trailing-slash", "not_found_handling": "404-page" }
+}

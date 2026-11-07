@@ -1,0 +1,23 @@
+[
+ {
+  "id": "portra400",
+  "film": "kodak_portra_400",
+  "paper": "kodak_portra_endura",
+  "slide": false,
+  "bytes": 690077
+ },
+ {
+  "id": "ektar100",
+  "film": "kodak_ektar_100",
+  "paper": "kodak_portra_endura",
+  "slide": false,
+  "bytes": 663079
+ },
+ {
+  "id": "velvia100",
+  "film": "fujifilm_velvia_100",
+  "paper": null,
+  "slide": true,
+  "bytes": 379922
+ }
+]

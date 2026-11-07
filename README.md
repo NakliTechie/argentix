@@ -1,40 +1,75 @@
-# Argentix
+<h1 align="center">Argentix</h1>
 
-A browser film lab: pick a film stock and print paper, drop in a photo, and see it as that film would have rendered it. Nothing leaves your tab.
+<p align="center"><strong>A browser film lab: drop in a photo and see it as Portra 400, Ektar 100 or Velvia 100 would have rendered it.</strong></p>
+
+<p align="center">One static page. No account, no upload, no server.</p>
+
+<p align="center"><img src="social.png" alt="The Argentix name beside a coffee cup rendered on Portra 400" width="640"></p>
 
 Film modeling powered by [spektrafilm](https://github.com/andreavolpato/spektrafilm) by Andrea Volpato.
 
 ## Install
 
-TODO: not built yet. Target: open `https://argentix.naklitechie.com` (static site, no account, no upload). Local run steps go here once the first slice exists.
+| Where | How |
+|---|---|
+| Browser | Open <https://argentix.naklitechie.com> |
+| Local | `python3 -m http.server 8742`, then open <http://127.0.0.1:8742> |
 
-## What it is
+The page opens on a sample photo already developed. Choose a film, move the sliders, drop in your own photo and press Download. You need a browser with WebGL2 and float textures. Your photo stays in the tab.
 
-Argentix bakes the slow physical film simulation of spektrafilm offline into 33³ colour lookup tables, one per film and paper pair. The browser applies a table with WebGL2, and runs grain and halation as separate shader passes. The ComfyUI pack [ComfyUI-Spektrafilm](https://github.com/jtydhr88/ComfyUI-Spektrafilm) uses the same table-for-colour idea for its live preview.
+## Why
 
-First slice: Portra 400, Ektar 100 and Velvia 100 on one paper; upload, switch stock, grain on or off, download.
+Phone film filters are colour curves named after film. Your Portra filter has no idea what the paper did, how the negative responds when you overexpose it, or why grain shows most in the midtones.
 
-## Status
+spektrafilm simulates the real chain from light to dye, but it takes about a second per small image and needs Python. Argentix bakes that simulation into lookup tables offline, then runs the chain on your GPU, so every slider responds at once and no photo goes anywhere.
 
-Tool tier, scaffolded 2026-11-05. First bake-and-compare check is done; see [docs/2026-11-05-bake-findings.md](docs/2026-11-05-bake-findings.md) for results, limits and next steps.
+Scope today: three films, one paper, sRGB in and out. Adjacency effects such as coupler diffusion are not modelled.
 
-## Credits and licences
+## Results
 
-- Code: GPL-3.0 (see `LICENSE`), because it builds on spektrafilm, which is GPL-3.0.
-- Film profiles and baked tables: CC BY-SA 4.0 (spektrafilm `SPEKTRAFILM_LICENSE.txt`, preamble v1.1, 2026-05-28). Every table keeps Andrea Volpato named as author, the canonical repo link and the licence notice, and says if it was modified. Asked, not required: no paid LUT packs, no commercial AI training on the tables, no "spektrafilm" in product branding (factual reference is welcome).
-- Datasheet-derived look checks draw on [Redlamp](https://github.com/pdcgomes/redlamp) (MPL-2.0), as a reference only.
+![Bar chart of mean difference from the full simulation for each slider, all below one 8-bit level](docs/results.png)
 
-## Context
+Mean difference from the full simulation stays under 1 of 255 levels at every slider setting, across 12 test images and 3 films. Reproduce with `scripts/inject_test.py`; the data is in [docs/slider-results.json](docs/slider-results.json).
 
-Tier: Tool. Standalone site at `argentix.naklitechie.com`, repo `NakliTechie/argentix`, hosted as a static Cloudflare Workers assets project. Muse (a separate NakliTechie photo-filter site) may borrow from it later. Handoff, 2026-11-05: "Bakes spektrafilm film+paper pairs offline into 33^3 LUTs; browser applies them with WebGL2, grain/halation as shader passes; static Cloudflare Workers assets, no server/account. Also draws on Redlamp datasheet looks. Licence GPL-3.0 with credit line 'film modeling powered by spektrafilm'."
+## What the controls do
 
-First steps: confirm what `spektrafilm-lut` can do (list film and print, table layouts for exposure and filter shifts); read `SPEKTRAFILM_LICENSE.txt` in full; run a bake-and-compare test against the full simulation on real photos.
+**Film exposure** over- or underexposes the film, and the printer corrects brightness, as a lab would. You see contrast and colour change. **Print exposure** and the **yellow and magenta filters** are the enlarger's controls. Velvia is slide film, viewed directly, so it has no print controls.
 
-## Contributor notes: verification budget
+**Grain** is added to film density before printing, so the print's contrast shapes it as it does in a darkroom. **Halation** is the glow around bright areas. Both scale with the photo's size on a 35 mm frame.
 
-- No tests, evals or diagnostics between implementation steps; build the whole batch, then check once at the batch boundary. A batch is one capability family, about a day of work.
-- Run only the checks that cover the changed batch; never repeat an unchanged suite.
-- Generated test data goes to one temp directory (default cap 5,000 files, 500 MB), preferably one aggregate file, deleted on success, failure and interrupt.
-- One diagnostic batch per failure; no new diagnostic script without a written hypothesis.
-- No new process tooling until a feature it gates exists.
-- Log anything over 50 MB or 1,000 files when it is created.
+## Commands
+
+Every control is also a tool, called through `navigator.modelContext` where the browser has it and `window.argentix.tools` otherwise:
+
+```text
+get_state             read the stock, settings and credit line
+list_stocks           list the films
+set_stock             switch film
+set_exposure          film exposure, -2 to 2 stops
+set_print_exposure    print exposure, -1 to 1 stop
+set_filters           yellow and magenta, -20 to 20 CC
+set_grain             grain on or off
+set_halation          halation on or off
+reset                 settings back to default
+load_photo            load a data URL or Blob
+render_photo          full-size render as a data URL
+download_photo        full-size render saved as a file
+```
+
+`window.argentix.manifest` lists the same entries with their input schemas.
+
+## Verify it yourself
+
+```bash
+python -I scripts/inject_test.py out.json kodak_portra_400:kodak_portra_endura -- photos/*.png
+python -I scripts/compare_browser.py browser.json assets/sample.png
+python -I scripts/compare_effects.py browser2.json
+```
+
+The first compares tables with the per-pixel pipeline at each slider setting. The other two compare renders from the page itself, for tables, grain and halation. They need the spektrafilm environment described in [docs/2026-11-05-bake-findings.md](docs/2026-11-05-bake-findings.md). Measured results and limits are in [docs/2026-11-08-layout-findings.md](docs/2026-11-08-layout-findings.md).
+
+## License
+
+Code: GPL-3.0, see `LICENSE`. Film tables: CC BY-SA 4.0, baked from spektrafilm profiles by Andrea Volpato and modified by re-encoding; each table file carries that notice. Asked, not required: no paid LUT packs, no commercial AI training on the tables, no "spektrafilm" in product branding. Sample photo: Rachel Michetti, CC0.
+
+[Layout findings](docs/2026-11-08-layout-findings.md) · [first bake findings](docs/2026-11-05-bake-findings.md)

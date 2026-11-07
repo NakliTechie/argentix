@@ -70,6 +70,6 @@ The first compares tables with the per-pixel pipeline at each slider setting. Th
 
 ## License
 
-Code: GPL-3.0, see `LICENSE`. Film tables: CC BY-SA 4.0, baked from spektrafilm profiles by Andrea Volpato and modified by re-encoding; each table file carries that notice. Asked, not required: no paid LUT packs, no commercial AI training on the tables, no "spektrafilm" in product branding. Sample photo: Rachel Michetti, CC0.
+Code: © 2026 Chirag Patnaik, GPL-3.0, see `LICENSE`. Film tables: CC BY-SA 4.0, baked from spektrafilm profiles by Andrea Volpato and modified by re-encoding; each table file carries that notice. Asked, not required: no paid LUT packs, no commercial AI training on the tables, no "spektrafilm" in product branding. Sample photo: Rachel Michetti, CC0.
 
 [Layout findings](docs/2026-11-08-layout-findings.md) · [first bake findings](docs/2026-11-05-bake-findings.md)

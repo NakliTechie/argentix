@@ -112,6 +112,7 @@ export async function readStock(url) {
   const end = bytes.indexOf(10);
   const head = JSON.parse(new TextDecoder().decode(bytes.subarray(0, end)));
   const n = head.size, count = n * n * n * 3, tables = {};
+  if (bytes.length !== end + 1 + head.tables.length * count * 2) throw new Error(`${url} has the wrong length`);
   head.tables.forEach((name, t) => {
     const start = end + 1 + t * count * 2;
     const q = new Uint16Array(bytes.slice(start, start + count * 2).buffer);
@@ -218,13 +219,17 @@ export class Engine {
   setSize(w, h) {
     const { gl } = this;
     for (const t of this.targets) { gl.deleteFramebuffer(t.fbo); gl.deleteTexture(t.tex); }
-    this.targets = [0, 1, 2, 3].map(() => {
+    this.targets = [];
+    for (let i = 0; i < 4; i++) {
       const tex = this.plain(gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, w, h, null);
       const fbo = gl.createFramebuffer();
+      this.targets.push({ tex, fbo }); // held before the check, so the next setSize frees a partial set
       gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
-      return { tex, fbo };
-    });
+      if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE || gl.getError() === gl.OUT_OF_MEMORY) {
+        throw new RangeError(`The GPU cannot hold a ${w} × ${h} render.`);
+      }
+    }
     this.canvas.width = w; this.canvas.height = h;
     this.w = w; this.h = h;
   }
@@ -232,6 +237,7 @@ export class Engine {
   setImage(bitmap) {
     const { gl } = this;
     if (this.src) gl.deleteTexture(this.src);
+    this.src = null;
     this.setSize(bitmap.width, bitmap.height);
     this.src = this.plain(gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, bitmap.width, bitmap.height, bitmap);
     this.exposedKey = null;

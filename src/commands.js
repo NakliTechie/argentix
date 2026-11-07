@@ -51,6 +51,7 @@ export function createCommands(app) {
     const tool = byName.get(name);
     if (!tool) throw new Error(`Unknown command ${name}`);
     history.push({ at: new Date().toISOString(), name, door });
+    if (history.length > 200) history.shift();
     return tool.handler(args);
   };
 

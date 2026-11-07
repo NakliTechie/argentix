@@ -33,6 +33,11 @@ Chrome through the agent tools, `scripts/compare_browser.py` and `scripts/compar
 - Halation at a white disc on dark, red excess just outside the edge: pipeline 0.0343, page 0.0358. Worst pixel error fell from 0.2685 without halation to 0.0275 with it.
 - A 6000×4000 photo rendered in 1.6 s on this Mac with no GL errors, while other sessions used the machine. This is an observation, not a benchmark.
 
+## Results: the live site
+Headless Chrome against `https://argentix.naklitechie.com/` with the cache disabled, from this Mac: first render 2,166 ms, no console errors, so the content security policy allows every path used. All three stocks loaded, a photo loaded through `load_photo`, and `render_photo` returned a JPEG. `README.md`, `scripts/`, `plan/`, `wrangler.jsonc` and `.git/` return 404.
+
+A cold Codex review found 13 issues in the page code. I fixed 13 of them: races between photo, stock and export work (one serial queue), start-up failures, unchecked decoding, GPU allocation failure (retry at a smaller size, 48 MP cap), bitmap release, table length check, command history bound and the GPL notice. Only the ordering fixes were tested; the allocation retry never ran, because this Mac did not run out of GPU memory.
+
 ## Limits
 - The pipeline's grain step also softens film density by 0.65 pixels. The page adds noise only, so a grainy render is slightly sharper than the pipeline's.
 - Three spatial effects are not modelled: DIR coupler diffusion, lens blur, scanner unsharp mask. On the sample, turning coupler diffusion on moves the pipeline by up to 0.08 at edges.

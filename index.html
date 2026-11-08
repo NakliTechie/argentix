@@ -17,43 +17,60 @@
 </head>
 <body>
 <main>
-  <section class="stage" aria-label="Photo">
-    <canvas id="view" aria-label="The photo as rendered on the chosen film"></canvas>
+  <section id="stage" class="stage" aria-label="Photo">
+    <canvas id="view" aria-label="The photo as rendered on the chosen film. Press and hold to see the original."></canvas>
+    <p id="caption" class="caption"><span id="caption-text"></span> <span id="size"></span></p>
+    <button id="compare" class="compare" type="button" aria-pressed="false">Hold to see original</button>
+    <p id="status" class="pill" aria-hidden="true" hidden></p>
+    <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
   </section>
   <aside class="rail">
-    <h1>Argentix</h1>
-    <p class="lede">Choose a film. Your photo stays in this tab.</p>
+    <header class="top">
+      <h1>Argentix</h1>
+      <button id="help-open" class="help-button" type="button" aria-label="Help">?</button>
+    </header>
+    <p class="lede">See your photo as a film stock would have rendered it.</p>
 
-    <label class="field" for="film">Film</label>
-    <select id="film"></select>
-    <div id="paper-row">
-      <label class="field" for="paper">Paper</label>
-      <select id="paper"></select>
+    <div id="photo-group" class="group">
+      <input id="file" class="hidden" type="file" accept="image/*">
+      <label class="button" for="file">Choose photo</label>
+      <p class="hint">Or drop or paste a photo anywhere. It never leaves this tab.</p>
     </div>
-    <p id="note" class="quiet"></p>
 
-    <label class="row" for="ev"><span>Film exposure</span><output id="ev-value"></output></label>
-    <input id="ev" type="range" min="-2" max="2" step="0.25">
+    <div id="film-group" class="group">
+      <label class="field" for="film">Film</label>
+      <select id="film"></select>
+      <p id="note" class="hint">The film shapes colour, contrast and grain.</p>
+      <div id="paper-row">
+        <label class="field" for="paper">Paper</label>
+        <select id="paper"></select>
+        <p class="hint">Negatives are printed on paper, which sets the final contrast and palette.</p>
+      </div>
+    </div>
 
-    <div id="print-controls">
+    <div class="group">
+      <label class="row" for="ev"><span>Film exposure</span><output id="ev-value"></output></label>
+      <input id="ev" type="range" min="-2" max="2" step="0.25">
+      <p class="hint">Over- or underexpose the film. The printer keeps brightness, so contrast and colour change.</p>
+      <label class="check"><input id="grain" type="checkbox"> Grain</label>
+      <label class="check"><input id="halation" type="checkbox"> Halation</label>
+      <p class="hint">Halation is the glow film shows around bright lights.</p>
+    </div>
+
+    <div id="print-controls" class="group">
       <label class="row" for="print"><span>Print exposure</span><output id="print-value"></output></label>
       <input id="print" type="range" min="-1" max="1" step="0.05">
       <label class="row" for="y"><span>Yellow filter</span><output id="y-value"></output></label>
       <input id="y" type="range" min="-20" max="20" step="1">
       <label class="row" for="m"><span>Magenta filter</span><output id="m-value"></output></label>
       <input id="m" type="range" min="-20" max="20" step="1">
+      <p class="hint">The enlarger's controls: print exposure lightens or darkens, the filters shift colour.</p>
     </div>
-
-    <label class="check"><input id="grain" type="checkbox"> Grain</label>
-    <label class="check"><input id="halation" type="checkbox"> Halation</label>
 
     <div class="actions">
-      <label class="button" for="file">Choose photo</label>
-      <input id="file" class="hidden" type="file" accept="image/*">
       <button id="download" class="button primary" type="button">Download</button>
-      <button id="reset" class="link" type="button">Reset</button>
+      <button id="reset" class="link" type="button">Reset sliders</button>
     </div>
-    <p class="quiet"><span id="size"></span> <span id="status" role="status" aria-live="polite"></span></p>
 
     <footer>
       <p id="credit">Film modeling powered by <a href="https://github.com/andreavolpato/spektrafilm" rel="noopener">spektrafilm</a> by Andrea Volpato.</p>
@@ -65,5 +82,45 @@
     </footer>
   </aside>
 </main>
+
+<dialog id="splash" class="sheet" aria-labelledby="splash-title">
+  <h2 id="splash-title">Argentix</h2>
+  <p>See your photos on 20 real film stocks and 8 print papers. Argentix simulates how light becomes dye on film, then on paper, using spektrafilm.</p>
+  <p>Everything runs in this tab. Your photos are never uploaded.</p>
+  <div class="sheet-actions">
+    <button id="splash-tour" class="button primary" type="button">Take the 3-step tour</button>
+    <button id="splash-start" class="button" type="button">Start</button>
+  </div>
+</dialog>
+
+<dialog id="help" class="sheet" aria-labelledby="help-title">
+  <h2 id="help-title">How Argentix works</h2>
+  <p>Light from your photo exposes a simulated film. The film is developed, then printed on a paper and scanned, as in a lab. Slide film is viewed directly, so it has no paper.</p>
+  <dl>
+    <dt>Stop</dt><dd>A doubling or halving of light.</dd>
+    <dt>Film exposure</dt><dd>How much light the film received. The printer corrects brightness, as a lab would, so over- and underexposure show as changes in contrast, colour and grain.</dd>
+    <dt>Paper</dt><dd>The print material. Each paper has its own contrast and palette. Cinema print films (2383, 2393) give the cinema look.</dd>
+    <dt>Print exposure</dt><dd>How long the enlarger exposes the paper: lighter or darker prints.</dd>
+    <dt>Yellow and magenta filters</dt><dd>The enlarger's colour filters, in CC units. More yellow makes the print bluer; more magenta makes it greener.</dd>
+    <dt>Grain</dt><dd>The visible texture of the film's dye clouds. It scales with your photo's size on a 35 mm frame.</dd>
+    <dt>Halation</dt><dd>Light that bounces back through the film base and glows around bright areas.</dd>
+    <dt>Tungsten films</dt><dd>Vision3 200T and 500T are made for indoor lamp light.</dd>
+  </dl>
+  <p class="hint">For agents: every control is a tool, through <code>navigator.modelContext</code> or <code>window.argentix.tools</code>.</p>
+  <div class="sheet-actions">
+    <button id="help-tour" class="button" type="button">Take the tour</button>
+    <button id="help-close" class="button primary" type="button">Close</button>
+  </div>
+</dialog>
+
+<dialog id="tour" class="tour" aria-labelledby="tour-text">
+  <p id="tour-text"></p>
+  <div class="tour-actions">
+    <span id="tour-count" class="hint"></span>
+    <button id="tour-skip" class="link" type="button">Skip</button>
+    <button id="tour-back" class="button" type="button">Back</button>
+    <button id="tour-next" class="button primary" type="button">Next</button>
+  </div>
+</dialog>
 </body>
 </html>

@@ -28,6 +28,13 @@ void main() {
   outColor = vec4(pow(vec3(10.0), tri(uL1, rgb, uLast)), 1.0);
 }`;
 
+const ORIGINAL = HEAD + `
+uniform sampler2D uSrc;
+void main() {
+  ivec2 c = ivec2(gl_FragCoord.xy);
+  outColor = vec4(texelFetch(uSrc, ivec2(c.x, textureSize(uSrc, 0).y - 1 - c.y), 0).rgb, 1.0);
+}`;
+
 const BLUR = HEAD + `
 uniform sampler2D uSrc; uniform vec3 uSigma; uniform ivec2 uAxis; uniform int uRadius;
 void main() {
@@ -170,7 +177,7 @@ export class Engine {
     }
     this.gl = gl;
     this.maxEdge = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 8192);
-    this.programs = { expose: this.program(EXPOSE), blur: this.program(BLUR), mix: this.program(MIX), develop: this.program(DEVELOP) };
+    this.programs = { original: this.program(ORIGINAL), expose: this.program(EXPOSE), blur: this.program(BLUR), mix: this.program(MIX), develop: this.program(DEVELOP) };
     this.vao = gl.createVertexArray();
     this.targets = [];
     this.films = new Map();
@@ -333,6 +340,11 @@ export class Engine {
     this.draw(this.targets[0]);
     this.exposed = halationOn && stock.head.halation.active ? this.halation(stock.head.halation) : this.targets[0];
     this.exposedKey = key;
+  }
+
+  renderOriginal() {
+    this.bind(this.programs.original, { uSrc: this.src });
+    this.draw(null);
   }
 
   render(filmId, printKey, s) {

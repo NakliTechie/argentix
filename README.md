@@ -15,7 +15,7 @@ Film modeling powered by [spektrafilm](https://github.com/andreavolpato/spektraf
 | Browser | Open <https://argentix.naklitechie.com> |
 | Local | `python3 -m http.server 8742`, then open <http://127.0.0.1:8742> |
 
-The page opens on a sample photo already developed. Choose a film, move the sliders, drop in your own photo and press Download. You need a browser with WebGL2 and float textures. Your photo stays in the tab.
+The page opens on a sample photo already developed, with a one-time welcome and an optional three-step tour; the ? button explains every control. Choose a film, drop or paste your own photo, hold the photo to compare with the original, and press Download. Your settings and last photo stay on this device across reloads. You need a browser with WebGL2 and float textures. Your photo stays in the tab.
 
 ## Why
 
@@ -54,7 +54,10 @@ set_print_exposure    print exposure, -1 to 1 stop
 set_filters           yellow and magenta, -20 to 20 CC
 set_grain             grain on or off
 set_halation          halation on or off
-reset                 settings back to default
+show_original         compare with the original while on
+open_help             open the help sheet
+start_tour            start the three-step tour
+reset                 sliders and switches back to default
 load_photo            load a data URL or Blob
 render_photo          full-size render as a data URL
 download_photo        full-size render saved as a file
